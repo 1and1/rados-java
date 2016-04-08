@@ -37,14 +37,14 @@ public class Rados extends RadosBase {
      * flags for ReadOp.operate and (maybe later) WriteOp.operate
      * See librados operate flags for more information
      */
-    public static int OPERATION_NOFLAG             = 0;
-    public static int OPERATION_BALANCE_READS      = 1;
-    public static int OPERATION_LOCALIZE_READS     = 2;
-    public static int OPERATION_ORDER_READS_WRITES = 4;
-    public static int OPERATION_IGNORE_CACHE       = 8;
-    public static int OPERATION_SKIPRWLOCKS        = 16;
-    public static int OPERATION_IGNORE_OVERLAY     = 32;
-    public static int OPERATION_FULL_TRY           = 64;
+    public static final int OPERATION_NOFLAG             = 0;
+    public static final int OPERATION_BALANCE_READS      = 1;
+    public static final int OPERATION_LOCALIZE_READS     = 2;
+    public static final int OPERATION_ORDER_READS_WRITES = 4;
+    public static final int OPERATION_IGNORE_CACHE       = 8;
+    public static final int OPERATION_SKIPRWLOCKS        = 16;
+    public static final int OPERATION_IGNORE_OVERLAY     = 32;
+    public static final int OPERATION_FULL_TRY           = 64;
 
     protected Pointer clusterPtr;
     private boolean connected;
@@ -410,6 +410,124 @@ public class Rados extends RadosBase {
         if (this.clusterPtr != null) {
             rados.rados_shutdown(this.clusterPtr);
             this.clusterPtr = null;
+        }
+    }
+
+    /**
+     * Executes commands in module: 'mon'
+     *
+     * To list commands execute "get_command_descriptions"
+     *
+     * @param commands Commands to execute
+     * @param in inputbuffer
+     * @return Returns a RadosCommandResult-object
+     * @throws RadosException
+     */
+    public RadosCommandResult executeRadosMonCommand(final String[] commands, final String in) throws RadosException {
+        final PointerByReference outBuf = new PointerByReference();
+        final IntByReference outBufLen = new IntByReference();
+        final PointerByReference statusBuf = new PointerByReference();
+        final IntByReference statusBufLen = new IntByReference();
+
+        int r = rados.rados_mon_command(this.clusterPtr, commands, commands.length, in, in.length(), outBuf, outBufLen, statusBuf, statusBufLen);
+
+        final String status = (statusBuf.getValue() == null ? "" : new String(statusBuf.getValue().getByteArray(0, statusBufLen.getValue())));
+
+        if (r != 0)
+            throw new RadosException("Error when executing Rados monitor commands: " + status, r);
+
+        final String out = (outBuf.getValue() == null ? "" : new String(outBuf.getValue().getByteArray(0, outBufLen.getValue())));
+
+        return new RadosCommandResult(out, status);
+    }
+
+    /**
+     * Executes commands in module: 'mon'
+     *
+     * To list commands execute "get_command_descriptions"
+     *
+     * @param commands Command to execute
+     * @param target Monitor target to execute commands
+     * @param in inputbuffer
+     * @return Returns a RadosCommandResult-object
+     * @throws RadosException
+     */
+    public RadosCommandResult executeRadosMonCommandTarget(final String[] commands, final String target, final String in) throws RadosException {
+        final PointerByReference outBuf = new PointerByReference();
+        final IntByReference outBufLen = new IntByReference();
+        final PointerByReference statusBuf = new PointerByReference();
+        final IntByReference statusBufLen = new IntByReference();
+
+        int r = rados.rados_mon_command_target(this.clusterPtr, target, commands, commands.length, in, in.length(), outBuf, outBufLen, statusBuf, statusBufLen);
+
+        final String status = (statusBuf.getValue() == null ? "" : new String(statusBuf.getValue().getByteArray(0, statusBufLen.getValue())));
+
+        if (r != 0)
+            throw new RadosException("Error when executing Rados monitor commands: " + status, r);
+
+        final String out = (outBuf.getValue() == null ? "" : new String(outBuf.getValue().getByteArray(0, outBufLen.getValue())));
+
+        return new RadosCommandResult(out, status);
+    }
+
+    /**
+     * Executes commands in module: 'osd'
+     *
+     * To list commands execute "get_command_descriptions"
+     *
+     * @param commands Command to execute
+     * @param osdId OSD used to process this commands
+     * @param in inputbuffer
+     * @return Returns a RadosCommandResult-object
+     * @throws RadosException
+     */
+    public RadosCommandResult executeRadosOsdCommand(final String[] commands, final int osdId, final String in) throws RadosException {
+        final PointerByReference outBuf = new PointerByReference();
+        final IntByReference outBufLen = new IntByReference();
+        final PointerByReference statusBuf = new PointerByReference();
+        final IntByReference statusBufLen = new IntByReference();
+
+        int r = rados.rados_osd_command(this.clusterPtr, osdId, commands, commands.length, in, in.length(), outBuf, outBufLen, statusBuf, statusBufLen);
+
+        final String status = (statusBuf.getValue() == null ? "" : new String(statusBuf.getValue().getByteArray(0, statusBufLen.getValue())));
+
+        if (r != 0)
+            throw new RadosException("Error when executing Rados osd command: " + status, r);
+
+        final String out = (outBuf.getValue() == null ? "" : new String(outBuf.getValue().getByteArray(0, outBufLen.getValue())));
+
+        return new RadosCommandResult(out, status);
+    }
+
+    /**
+     * Result returned by RadosCommands
+     */
+    public class RadosCommandResult {
+
+        private final String output;
+        private final String statusOutput;
+
+        protected RadosCommandResult(String output, String statusOutput) {
+            this.output = output;
+            this.statusOutput = statusOutput;
+        }
+
+        /**
+         * Get the output of the RadosCommand
+         *
+         * @return a String containing the output of the RadosCommand
+         */
+        public String getOutput() {
+            return output;
+        }
+
+        /**
+         * Get the status of the RadosCommand
+         *
+         * @return a String containing the status of the RadosCommand
+         */
+        public String getStatus() {
+            return statusOutput;
         }
     }
 }
