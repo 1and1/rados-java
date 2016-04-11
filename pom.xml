@@ -5,7 +5,7 @@
     <groupId>com.ceph</groupId>
     <artifactId>rados</artifactId>
     <packaging>jar</packaging>
-    <version>0.3.0-unitedinternet-SNAPSHOT</version>
+    <version>0.2.0-unitedinternet-3</version>
     <name>rados java bindings</name>
     <description>Java API for the RADOS C library</description>
     <url>http://www.ceph.com</url>
@@ -19,7 +19,7 @@
         <url>http://www.github.com/ceph/rados-java</url>
         <developerConnection>scm:git:https://github.com/ceph/rados-java</developerConnection>
         <connection>scm:git:https://github.com/ceph/rados-java</connection>
-      <tag>HEAD</tag>
+      <tag>rados-0.2.0-unitedinternet-3</tag>
   </scm>
     <developers>
         <developer>
